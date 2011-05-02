@@ -1,0 +1,13 @@
+#!/usr/bin/ruby
+
+require 'pp'
+
+def find(what=:all, opts={})
+  pp what
+  pp opts
+  puts
+end
+
+find
+find(:something, :foo=>:bar)
+find(:foo=>:bar)

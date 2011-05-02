@@ -1,0 +1,71 @@
+
+= solaris-patch
+
+Author:: Martin Carpenter
+Email:: mcarpenter@free.fr
+Copyright:: Copyright (c) Martin Carpenter 2011
+
+== About
+The solaris-patch gem helps with the manipulation of SunOS and Solaris
+patches. 
+
+ * Read (or write!) patchdiag.xref files.
+ * Find latest version of a patch.
+ * Find latest non-superseded version of a patch.
+ * Download patchdiag.xref, patches, readmes from Oracle.
+ * ...
+
+== Examples
+
+=== Download a patch
+
+    require 'solaris/patch'
+    Solaris::Patch.download_patch!('123456-78',
+                                   :to_file => '/tmp/123456-78.zip')
+
+Alternatively:
+
+    patch = Solaris::Patch.new( '123456-78' )
+    patch.download_patch!( :to_dir => '/tmp' )
+
+=== Get the latest version of a patch
+
+    require 'solaris/patch'
+    Solaris::Patchdiag.open( '/tmp/patchdiag.xref' ).latest( '123456-01' )
+    => "123456|12|..."
+
+=== Get the latest non-obsolete version of an possibly obsoleted patch
+
+    require 'solaris/patch'
+    Solaris::Patchdiag.open( '/tmp/patchdiag.xref' ).successor( '123456-01' )
+    => "234567|12|..."
+
+=== Interrogate patchdiag.xref
+
+    require 'solaris/patch'
+
+    # slurp in patchdiag.xref
+    patchdiag = Solaris::Patchdiag.new( '/tmp/patchdiag.xref' )
+
+    # all sparc patches
+    patchdiag.all.select { |p| p.archs.include? 'sparc' }.inspect
+    => [ "123456-78", ... ]
+
+    # latest line added to patchdiag.xref
+    most_recent = patchdiag.all( :sort_by => :date, :order => ascending ).max
+    most_recent
+    => "123456|78|..."
+
+    # most recent patch number
+    most_recent.patch
+    => "123456-78"
+
+    # most recent patch's README if it was recommended
+    most_recent.download_readme! if most_recent.recommended?
+    => "Patch-ID# 123456-78..."
+
+== Known issues
+
+Dates in patchdiag.xref are Mon/dd/yy format. This gem will break in
+2050 since it assumes year 50 and above is in the 20th Century.
+
