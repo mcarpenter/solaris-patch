@@ -6,7 +6,7 @@ module Solaris
     # Superclass for all throwable exceptions.
     class Exception < ::Exception ; end
 
-    # Exception is raised by #find_successor when the patch whose
+    # Exception is raised by #successor when the patch whose
     # successor is to be sought or the supposed successor to a patch
     # does not exist in patchdiag.xref.
     class NotFound < Exception ; end
