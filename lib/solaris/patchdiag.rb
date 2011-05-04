@@ -55,9 +55,9 @@ module Solaris
       end
     end
 
-    # Returns an array of Solaris::PatchdiagEntry from the patchdiag with the given
-    # patch number (a String like xxxxxx-yy or xxxxxx or a Solaris::Patch). Returns an
-    # empty array if no such patches can be found.
+    # Returns an array of Solaris::PatchdiagEntry from the patchdiag.xref with the given
+    # patch number (a String like xxxxxx-yy or xxxxxx or a Solaris::Patch), sorted by
+    # minor number. Returns an empty array if no such patches can be found.
     def find(patch)
       patch = Patch.new( patch.to_s )
       property = patch.minor ? :to_s : :major
@@ -79,7 +79,7 @@ module Solaris
     # named successors cannot be found in patchdiag.xref.
     def successor(patch)
       patch = Patch.new( patch.to_s )
-      if ! patch.minor || ! entry = find( patch ).first
+      if ! patch.minor || ! entry = find( patch ).last
         entry = latest( patch )
       end
       raise Solaris::Patch::NotFound,
