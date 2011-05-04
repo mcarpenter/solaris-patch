@@ -80,17 +80,16 @@ module Solaris
     def successor(patch)
       patch = Patch.new( patch.to_s )
       if ! patch.minor || ! entry = find( patch ).last
-        entry = latest( patch )
-      end
-      raise Solaris::Patch::NotFound,
-        "Cannot find patch #{patch} in patchdiag.xref" unless entry
-      if entry.obsolete?
-        succ = entry.successor # may raise
-        successor( succ )
-      elsif entry.bad?
-        raise BadSuccessor, "Terminal successor #{patch} is bad/withdrawn"
+        successor( latest( patch ).patch )
       else
-        entry
+        if entry.obsolete?
+          succ = entry.successor # may raise
+          successor( succ )
+        elsif entry.bad?
+          raise BadSuccessor, "Terminal successor #{patch} is bad/withdrawn"
+        else
+          entry
+        end
       end
     end
 
