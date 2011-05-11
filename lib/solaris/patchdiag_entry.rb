@@ -123,10 +123,10 @@ module Solaris
       raise Solaris::Patch::NotObsolete,
         "Entry #{patch.inspect} not obsolete" unless obsolete?
 
-      # Fail on these two entries from 1999 since they are the only ones ever
-      # that are succeeded by two patches each
+      # Fail if this entry is obsoleted by two patches (currently 2011/05/04
+      # only 105716 and 105717)
       raise Solaris::Patch::MultipleSuccessors,
-        "More than one successor for entry #{patch.inspect}" if [ 105716, 105717 ].include?( self.major )
+        "More than one successor for entry #{patch.inspect}" if synopsis =~ /obsolete(d?) by\s*(:?)\s*(\d+(-\d+)?)\s+and\s+(\d+(-\d+)?)/i
 
       # See if we can find a successor
       if synopsis =~ /obsolete(d?) by\s*(:?)\s*(\d+(-\d+)?)/i
