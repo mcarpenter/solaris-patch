@@ -44,8 +44,8 @@ module Solaris
       Util.download!( url, opts )
     end
 
-    # Open the given optional patchdiag xref file and yield to the optional
-    # block.
+    # Open the given optional patchdiag xref file and yield to the
+    # optional block.
     def Patchdiag.open(xref_file=DEFAULT_XREF_FILE, &blk)
       patchdiag = Patchdiag.new( xref_file )
       if block_given?
@@ -55,9 +55,14 @@ module Solaris
       end
     end
 
-    # Returns an array of Solaris::PatchdiagEntry from the patchdiag.xref with the given
-    # patch number (a String like xxxxxx-yy or xxxxxx or a Solaris::Patch), sorted by
-    # minor number. Returns an empty array if no such patches can be found.
+    # Returns an array of Solaris::PatchdiagEntry from the
+    # patchdiag.xref with the given patch number (a String like
+    # xxxxxx-yy or xxxxxx or a Solaris::Patch), sorted by minor number.
+    # If both a major and minor number are supplied (xxxxxx-yy) then
+    # returned entries (normally only one) will match exactly. If only
+    # a major number (xxxxxx) is supplied then all entries with that
+    # major number are returned. Returns an empty array if no such
+    # patches can be found.
     def find(patch)
       patch = Patch.new( patch.to_s )
       property = patch.minor ? :to_s : :major
@@ -65,9 +70,10 @@ module Solaris
       all.select { |pde| pde.patch.send( property ) == comparator }
     end
 
-    # Return the Solaris::PatchdiagEntry of the latest version of the given patch
-    # (a String like xxxxxx-yy or xxxxxx or a Solaris::Patch).
-    # Throws Solaris::Patch::NotFound if the patch cannot be found in patchdiag.xref.
+    # Return the Solaris::PatchdiagEntry of the latest version of the
+    # given patch (a String like xxxxxx-yy or xxxxxx or a
+    # Solaris::Patch). Throws Solaris::Patch::NotFound if the patch
+    # cannot be found in patchdiag.xref.
     def latest(patch)
       major = Patch.new( patch.to_s ).major
       find( major ).max ||
@@ -75,16 +81,33 @@ module Solaris
     end
 
     # Return the Solaris::PatchdiagEntry of the latest non-obsolete successor
-    # of this patch. Throws Solaris::Patch::NotFound if the patch or any of its
-    # named successors cannot be found in patchdiag.xref.
-    def successor(patch)
+    # of this patch.
+    #
+    # Throws Solaris::Patch::NotFound if the patch or any of its named
+    # successors cannot be found in patchdiag.xref, or if no later version
+    # of the patch exists.
+    #
+    # Throws Solaris::Patch::SuccessorLoop if the successor of a patch refers
+    # to a patch that has already been referenced (an ancestor).
+    #
+    # The ancestors parameter is a recursion accumulator and should not normally
+    # be assigned to by callers.
+    def successor(patch, ancestors=[])
       patch = Patch.new( patch.to_s )
-      if ! patch.minor || ! entry = find( patch ).last
-        successor( latest( patch ).patch )
+      raise Solaris::Patch::SuccessorLoop,
+        "Loop detected for patch #{patch} with ancestors #{ancestors.inspect}" if ancestors.include?( patch )
+      ancestors << patch
+      if ! patch.minor # patch has no minor number
+        successor( latest( patch ).patch, ancestors )
+      elsif ! entry = find( patch ).last # explicit patch not found
+        latest_patch = latest( patch ).patch
+        raise Solaris::Patch::NotFound,
+          "Patch #{patch} not found and has no later version" if latest_patch.minor <= patch.minor
+        successor( latest_patch, ancestors )
       else
         if entry.obsolete?
-          succ = entry.successor # may raise
-          successor( succ )
+          succ = entry.successor
+          successor( succ, ancestors )
         elsif entry.bad?
           raise BadSuccessor, "Terminal successor #{patch} is bad/withdrawn"
         else

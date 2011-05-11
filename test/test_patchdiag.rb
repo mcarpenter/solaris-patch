@@ -8,7 +8,7 @@ class TestPatchdiag < Test::Unit::TestCase #:nodoc:
 
   def setup
     @empty_file = '/dev/null'
-    @patchdiag_fileish = StringIO.new(<<-EOF
+    @patchdiag_string = <<-EOF
 ## PATCHDIAG TOOL CROSS-REFERENCE FILE AS OF Feb/10/11 ##
 ##
 ## The content of this file has changed as of Jun/04/10. Due to the merging of
@@ -71,8 +71,14 @@ class TestPatchdiag < Test::Unit::TestCase #:nodoc:
 146444|01|Jan/27/11| | | |  |10_x86|i386;120012-14;142910-17;|SUNWnge:11.10.0,REV=2005.06.22.03.40;|SunOS 5.10_x86: nge patch
 800054|01|Mar/16/01| | |O|  |Unbundled|||Obsoleted by: 111346-01 Hardware/PROM: Sun Fire 3800/4800/4810/680
 100974|02|Mar/14/95| | | |  |Unbundled|sparc;|SPROsw:2.1.0;|SparcWorks 2.0.1: dbx jumbo patch
+654321|01|Jan/01/00| | |O|  |Unbundled|||Obsoleted by: 654321-02
+654321|02|Jan/01/00| | |O|  |Unbundled|||Obsoleted by: 654321-03
+654321|03|Jan/01/00| | |O|  |Unbundled|||Obsoleted by: 654321-01
+654322|01|Jan/01/00| | |O|  |Unbundled|||Obsoleted by: 654321-05
+115302|01|Jul/08/03| | |O| B|Unbundled|||WITHDRAWN PATCH Obsoleted by: 115302-02 Hardware/PROM: CP2060/CP20
 EOF
-                           )
+    @patchdiag_fileish = StringIO.new( @patchdiag_string )
+    @patchdiag_size = 56
     @patchdiag = Solaris::Patchdiag.open( @patchdiag_fileish )
   end
 
@@ -80,10 +86,12 @@ EOF
     @empty_file = nil
     @patchdiag = nil
     @patchdiag_fileish = nil
+    @patchdiag_string = nil
+    @patchdiag_size = nil
   end
 
   def test_new_by_fileish
-    assert_equal( 51, @patchdiag.entries.size )
+    assert_equal( @patchdiag_size, @patchdiag.entries.size )
   end
 
   def test_new_by_filename
@@ -93,7 +101,7 @@ EOF
     temp.close
     patchdiag = Solaris::Patchdiag.new( path )
     File.unlink( path )
-    assert_equal( 51, @patchdiag.entries.size )
+    assert_equal( @patchdiag_size, @patchdiag.entries.size )
   end
 
   def test_new_empty_file
@@ -104,7 +112,7 @@ EOF
   end
 
   def test_all
-    assert_equal( 51, @patchdiag.all.size )
+    assert_equal( @patchdiag_size, @patchdiag.all.size )
   end
 
   def test_all_sort_by_date_order_ascending
@@ -176,11 +184,26 @@ EOF
     assert_equal( '100287-05', @patchdiag.successor( Solaris::Patch.new( '100287-05' ) ).patch.to_s )
     assert_equal( '100974-02', @patchdiag.successor( 100791 ).patch.to_s )
     assert_raise( Solaris::Patch::NotFound ) do
+      @patchdiag.successor( 123456 )
+    end
+    assert_raise( Solaris::Patch::NotFound ) do
       @patchdiag.successor( 100393 ) # successor 100394 not in patchdiag.xref
+    end
+    assert_raise( Solaris::Patch::NotFound ) do
+      @patchdiag.successor( '654322-05' )
     end
     assert_equal( '100807-04', @patchdiag.successor( '100807-01' ).patch.to_s )
     assert_raise( Solaris::Patch::InvalidSuccessor ) do
       @patchdiag.successor( '100807-03' ) # successor 100807-03 WITHDRAWN
+    end
+    assert_raise( Solaris::Patch::SuccessorLoop ) do
+      @patchdiag.successor( 654321 )
+    end
+    assert_raise( Solaris::Patch::SuccessorLoop ) do
+      @patchdiag.successor( '654321-01' )
+    end
+    assert_raise( Solaris::Patch::NotFound ) do
+      @patchdiag.successor( 115302 )
     end
   end
 
