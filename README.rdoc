@@ -9,24 +9,30 @@ Copyright:: Copyright (c) Martin Carpenter 2011
 The solaris-patch gem helps with the manipulation of SunOS and Solaris
 patches. 
 
- * Read (or write!) patchdiag.xref files.
- * Find latest version of a patch.
- * Find latest non-superseded version of a patch.
- * Download patchdiag.xref, patches, readmes from Oracle.
- * ...
+* Read (or write!) patchdiag.xref files.
+* Find latest version of a patch.
+* Find latest non-superseded version of a patch.
+* Download patchdiag.xref, patches, readmes from Oracle.
+* ...
 
 == Examples
 
 === Download a patch
 
     require 'solaris/patch'
-    Solaris::Patch.download_patch!('123456-78',
-                                   :to_file => '/tmp/123456-78.zip')
+    Solaris::Patch.download_patch!( '123456-78',
+                                    :to_file => '/tmp/123456-78.zip' )
 
 Alternatively:
 
     patch = Solaris::Patch.new( '123456-78' )
     patch.download_patch!( :to_dir => '/tmp' )
+
+=== Download a readme
+
+    require 'solaris/patch'
+    Solaris::Patch.download_readme!( '123456-78',
+                                     :to_file => '/tmp/123456-78.txt' )
 
 === Get the latest version of a patch
 
@@ -34,7 +40,7 @@ Alternatively:
     Solaris::Patchdiag.open( '/tmp/patchdiag.xref' ).latest( '123456-01' )
     => "123456|12|..."
 
-=== Get the latest non-obsolete version of an possibly obsoleted patch
+=== Get the latest non-obsolete version of a possibly obsoleted patch
 
     require 'solaris/patch'
     Solaris::Patchdiag.open( '/tmp/patchdiag.xref' ).successor( '123456-01' )
@@ -67,5 +73,5 @@ Alternatively:
 == Known issues
 
 Dates in patchdiag.xref are Mon/dd/yy format. This gem will break in
-2050 since it assumes year 50 and above is in the 20th Century.
+2050 since it assumes year 50 and above is in the 20th century.
 
