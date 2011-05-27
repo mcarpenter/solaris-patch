@@ -91,8 +91,9 @@ module Solaris
       @_entries.sort!( &blk )
     end
 
-    # Return the Solaris::PatchdiagEntry of the latest non-obsolete successor
-    # of this patch.
+    # Return an array of Solaris::Patch of the successors to the given
+    # patch terminating in the latest non-obsolete successor (where that
+    # exists).
     #
     # Throws Solaris::Patch::NotFound if the patch or any of its named
     # successors cannot be found in patchdiag.xref, or if no later version
@@ -103,28 +104,34 @@ module Solaris
     #
     # The ancestors parameter is a recursion accumulator and should not normally
     # be assigned to by callers.
-    def successor(patch, ancestors=[])
+    def successors(patch, ancestors=[])
       patch = Patch.new( patch.to_s )
       raise Solaris::Patch::SuccessorLoop,
         "Loop detected for patch #{patch} with ancestors #{ancestors.inspect}" if ancestors.include?( patch )
       ancestors << patch
       if ! patch.minor # patch has no minor number
-        successor( latest( patch ).patch, ancestors )
+        successors( latest( patch ).patch, ancestors )
       elsif ! entry = find( patch ).last # explicit patch not found
         latest_patch = latest( patch ).patch
         raise Solaris::Patch::NotFound,
           "Patch #{patch} not found and has no later version" if latest_patch.minor <= patch.minor
-        successor( latest_patch, ancestors )
+        successors( latest_patch, ancestors )
       else
         if entry.obsolete?
           succ = entry.successor
-          successor( succ, ancestors )
+          successors( succ, ancestors )
         elsif entry.bad?
           raise BadSuccessor, "Terminal successor #{patch} is bad/withdrawn"
         else
-          entry
+          ancestors
         end
       end
+    end
+
+    # Return the Solaris::PatchdiagEntry of the latest non-obsolete successor
+    # of this patch. This is a convenience method for #successors.last.
+    def successor(patch)
+      latest( successors( patch ).last )
     end
 
   end # Patchdiag

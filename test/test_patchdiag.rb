@@ -213,6 +213,11 @@ EOF
     end
   end
 
+  def test_successors
+    assert_equal( %w{ 100791 100791-05 100974 100974-02 },
+                 @patchdiag.successors( 100791 ).map(&:to_s) )
+  end
+
   def test_download!
     skip 'Mock required'
   end
