@@ -148,6 +148,34 @@ EOF
     assert_equal( Solaris::Patchdiag, @patchdiag.class )
   end
 
+  def test_bad
+    entry = @patchdiag.latest( '115302' )
+    assert_equal( true, entry.bad? )
+    entry = @patchdiag.latest( '654321-01' )
+    assert_equal( false, entry.bad? )
+  end
+
+  def test_recommended
+    entry = @patchdiag.latest( '146279-01' )
+    assert_equal( true, entry.recommended? )
+    entry = @patchdiag.latest( '654321-01' )
+    assert_equal( false, entry.recommended? )
+  end
+
+  def test_security
+    entry = @patchdiag.latest( '146279-01' )
+    assert_equal( true, entry.security? )
+    entry = @patchdiag.latest( '654321-01' )
+    assert_equal( false, entry.security? )
+  end
+
+  def test_obsolete
+    entry = @patchdiag.latest( '115302-01' )
+    assert_equal( true, entry.obsolete? )
+    entry = @patchdiag.latest( '100287-05' )
+    assert_equal( false, entry.obsolete? )
+  end
+
   def test_find
     assert_equal( [], @patchdiag.find( 123456 ) )
     assert_equal( [], @patchdiag.find( '123456' ) )

@@ -18,7 +18,9 @@ module Solaris
     attr_accessor :archs
 
     # The bad field from the patchdiag xref database. Should be either 'B'
-    # or the empty string. See also PatchdiagEntry#bad?
+    # or the empty string. See also PatchdiagEntry#bad? (and
+    # PatchdiagEntry#y2k? since these flags share the same column in
+    # patchdiag.xref).
     attr_accessor :bad
 
     # The date of this patch (a Date object).
@@ -48,9 +50,15 @@ module Solaris
     # text field (string).
     attr_accessor :synopsis
 
+    # The year 2000 field from the patchdiag xref database. Should be either 'Y'
+    # or the empty string. See also PatchdiagEntry#y2k? (and
+    # PatchdiagEntry#bad? since these flags share the same column in
+    # patchdiag.xref).
+    attr_accessor :y2k
+
     def initialize(patchdiag_line)
-      fields = patchdiag_line.split('|', 11)
-      major, minor, date, @recommended, @security, @obsolete, @bad, @os, archs, pkgs, @synopsis = *fields
+      fields = patchdiag_line.split( '|', 11 )
+      major, minor, date, @recommended, @security, @obsolete, bad, @os, archs, pkgs, @synopsis = *fields
       @archs = archs.split( ';' )
       if date == ''
         year, month, day = 1970, 1, 1
@@ -60,6 +68,8 @@ module Solaris
         month = Date::ABBR_MONTHNAMES.index( month_s )
         day = day_s.to_i
       end
+      @bad = bad =~ /B/ ? 'B' : ' '
+      @y2k = bad =~ /Y/ ? 'Y' : ' '
       @date = Date.new( year, month, day )
       @patch = Patch.new( major, minor )
       @pkgs = pkgs.split( ';' )
@@ -146,13 +156,15 @@ module Solaris
         @recommended,
         @security,
         @obsolete,
-        @bad,
+        @bad + @y2k,
         @os,
         join_semis( @archs ),
         join_semis( @pkgs ),
         @synopsis
       ].join('|')
     end
+
+    def y2k? ; @y2k == 'Y' end
 
     # Compare (by delegated comparison of patch versions, see Solaris::Patch#<=>).
     def <=>(other)
@@ -170,7 +182,7 @@ module Solaris
     end
 
     # Join an array of items with semicolons and append a trailing
-    # semicolon if the array is non-empty, otherwise return the 
+    # semicolon if the array is non-empty, otherwise return the
     # empty string. Used to format @archs and @pkgs for #to_s.
     def join_semis(a)
       a.empty? ? '' : a.join(';') + ';'
