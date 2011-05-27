@@ -111,24 +111,24 @@ EOF
     end
   end
 
-  def test_all
-    assert_equal( @patchdiag_size, @patchdiag.all.size )
+  def test_entries
+    assert_equal( @patchdiag_size, @patchdiag.entries.size )
   end
 
-  def test_all_sort_by_date_order_ascending
-    all = @patchdiag.all( :sort_by => :date, :order => :ascending )
+  def test_sort_by_date_order_ascending
+    all = @patchdiag.sort_by( &:date )
     first = all.first.patch # oldest
     last = all.last.patch # newest
     assert_equal( Solaris::Patch.new( '100386-01' ), first )
     assert_equal( Solaris::Patch.new( '146443-01' ), last )
   end
 
-  def test_all_sort_by_patch_order_descending
-    all = @patchdiag.all( :sort_by => :patch, :order => :descending )
-    first = all.first.patch # largest
-    last = all.last.patch # smallest
-    assert_equal( Solaris::Patch.new( '800054-01' ), first )
-    assert_equal( Solaris::Patch.new( '100287-05' ), last )
+  def test_sort_by_patch_order_ascending
+    all = @patchdiag.sort
+    first = all.first.patch # smallest
+    last = all.last.patch # largest
+    assert_equal( Solaris::Patch.new( '800054-01' ), last )
+    assert_equal( Solaris::Patch.new( '100287-05' ), first )
   end
 
   def test_open_block
@@ -172,6 +172,12 @@ EOF
     assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791' ) ).patch.to_s )
     assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791-01' ) ).patch.to_s )
     assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791-05' ) ).patch.to_s )
+  end
+
+  def test_sort!
+    assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
+    @patchdiag.sort!
+    assert_equal( '800054-01', @patchdiag.entries.last.patch.to_s )
   end
 
   def test_successor

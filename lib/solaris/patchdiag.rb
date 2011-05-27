@@ -12,15 +12,13 @@ module Solaris
     require 'solaris/patchdiag_entry'
     require 'solaris/util'
 
+    include Enumerable
+
     # Default patchdiag.xref file, as for Patch Check Advanced cache
     DEFAULT_XREF_FILE = '/var/tmp/patchdiag.xref'
 
     # URL of latest patchdiag.xref from Oracle.
     DEFAULT_XREF_URL = 'https://getupdates.oracle.com/reports/patchdiag.xref'
-
-    # An array containing all entries (of class PatchdiagEntry) read
-    # from the patchdiag.xref file.
-    attr_accessor :entries
 
     # Create a new patchdiag database object by reading the given
     # xref file (this may be a filename (string) or a fileish object
@@ -29,7 +27,7 @@ module Solaris
     # by Patch Check Advanced (pca).
     def initialize(xref_file=DEFAULT_XREF_FILE)
       xref_file = File.new( xref_file ) if xref_file.is_a?(String)
-      @entries = xref_file.
+      @_entries = xref_file.
         readlines.
         reject { |line| line =~ /^#|^\s*$/ }. # discard comments, blanks
         map { |line| PatchdiagEntry.new( line ) }
@@ -55,6 +53,11 @@ module Solaris
       end
     end
 
+    # For Enumerator module: yields each value of @_entries in turn.
+    def each(&blk)
+      @_entries.each( &blk )
+    end
+
     # Returns an array of Solaris::PatchdiagEntry from the
     # patchdiag.xref with the given patch number (a String like
     # xxxxxx-yy or xxxxxx or a Solaris::Patch), sorted by minor number.
@@ -63,11 +66,12 @@ module Solaris
     # a major number (xxxxxx) is supplied then all entries with that
     # major number are returned. Returns an empty array if no such
     # patches can be found.
+    # This method overrides Enumerable#find.
     def find(patch)
       patch = Patch.new( patch.to_s )
       property = patch.minor ? :to_s : :major
       comparator = patch.send( property )
-      all.select { |pde| pde.patch.send( property ) == comparator }
+      entries.select { |pde| pde.patch.send( property ) == comparator }
     end
 
     # Return the Solaris::PatchdiagEntry of the latest version of the
@@ -77,7 +81,14 @@ module Solaris
     def latest(patch)
       major = Patch.new( patch.to_s ).major
       find( major ).max ||
-        raise( Solaris::Patch::NotFound, "Cannot find patch #{patch} in patchdiag.xref" )
+        raise( Solaris::Patch::NotFound,
+              "Cannot find patch #{patch} in patchdiag.xref" )
+    end
+
+    # Sorts the entries in place, takes an optional block. #sort is provided
+    # by the Enumerable mixin.
+    def sort!(&blk)
+      @_entries.sort!( &blk )
     end
 
     # Return the Solaris::PatchdiagEntry of the latest non-obsolete successor
@@ -114,41 +125,6 @@ module Solaris
           entry
         end
       end
-    end
-
-    # Return all patchdiag entries (PatchdiagEntry) defined in the patchdiag.xref.
-    # This method scans the entire patchdiag database so may be a little slow:
-    # callers are encouraged to cache or memoize their results.
-    def all(opts={})
-
-      # Defaults
-      order = :ascending
-      sort_by = :patch
-
-      # Parse options
-      opts.each do |key, value|
-        case key
-        when :sort_by
-          raise ArgumentError, "Invalid sort_by #{value.inspect}" unless [ :patch, :date ].include?( value )
-          sort_by = value
-        when :order
-          raise ArgumentError, "Invalid order #{value.inspect}" unless [ :ascending, :descending ].include?( value )
-          order = value
-        else
-          raise ArgumentError, "Unknown option key #{key.inspect}"
-        end
-      end
-
-      # Compute the lambda for sorting.
-      if order == :ascending
-        boat_op = lambda { |x,y| x.send( sort_by ) <=> y.send( sort_by ) }
-      else
-        boat_op = lambda { |x,y| y.send( sort_by ) <=> x.send( sort_by ) }
-      end
-
-      # Sort and return.
-      @entries.sort { |x,y| boat_op.call( x, y ) }
-
     end
 
   end # Patchdiag
