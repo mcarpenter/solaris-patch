@@ -111,6 +111,11 @@ EOF
     end
   end
 
+  def test_no_tailing_newline
+    s = StringIO.new('115302|01|Jul/08/03| | |O| B|Unbundled|||blah blah')
+    assert_equal( 1, Solaris::Patchdiag.new( s ).entries.size )
+  end
+
   def test_entries
     assert_equal( @patchdiag_size, @patchdiag.entries.size )
   end

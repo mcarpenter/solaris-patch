@@ -49,7 +49,7 @@ module Solaris
     attr_accessor :synopsis
 
     def initialize(patchdiag_line)
-      fields = patchdiag_line.split('|')[0..10]
+      fields = patchdiag_line.split('|', 11)
       major, minor, date, @recommended, @security, @obsolete, @bad, @os, archs, pkgs, @synopsis = *fields
       @archs = archs.split( ';' )
       if date == ''
