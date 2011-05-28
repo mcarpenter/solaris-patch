@@ -164,6 +164,8 @@ module Solaris
       ].join('|')
     end
 
+    # Boolean, returns true if this patch is marked as a year 2000 patch in the
+    # patchdiag xref database.
     def y2k? ; @y2k == 'Y' end
 
     # Compare (by delegated comparison of patch versions, see Solaris::Patch#<=>).
