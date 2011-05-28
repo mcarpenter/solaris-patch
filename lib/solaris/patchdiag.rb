@@ -134,6 +134,13 @@ module Solaris
       latest( successors( patch ).last )
     end
 
+    # Returns a string representation of the patchdiag.xref. All comments
+    # and blank lines are elided.
+    def to_s
+      entries.join("\n")
+    end
+    alias to_str to_s
+
   end # Patchdiag
 
 end # Solaris
