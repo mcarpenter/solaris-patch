@@ -73,6 +73,7 @@ module Solaris
       @date = Date.new( year, month, day )
       @patch = Patch.new( major, minor )
       @pkgs = pkgs.split( ';' )
+      @synopsis.chomp!
     end
 
     # Boolean, returns true if this patch is marked as "bad" in the patchdiag
@@ -163,6 +164,7 @@ module Solaris
         @synopsis
       ].join('|')
     end
+    alias to_str to_s
 
     # Boolean, returns true if this patch is marked as a year 2000 patch in the
     # patchdiag xref database.
