@@ -26,7 +26,7 @@ module Solaris
     # is read (/var/tmp/patchdiag.xref); this is the cache file used
     # by Patch Check Advanced (pca).
     def initialize(xref_file=DEFAULT_XREF_FILE)
-      xref_file = File.new( xref_file ) if xref_file.is_a?(String)
+      xref_file = File.new( xref_file ) if xref_file.is_a?( String )
       @_entries = xref_file.
         readlines.
         reject { |line| line =~ /^#|^\s*$/ }. # discard comments, blanks
@@ -53,7 +53,8 @@ module Solaris
       end
     end
 
-    # For Enumerator module: yields each value of @_entries in turn.
+    # For Enumerator module: yields each Solaris::PatchdiagEntry in
+    # turn.
     def each(&blk)
       @_entries.each( &blk )
     end
