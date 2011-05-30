@@ -54,11 +54,11 @@ Alternatively:
     patchdiag = Solaris::Patchdiag.new( '/tmp/patchdiag.xref' )
 
     # all sparc patches
-    patchdiag.all.select { |p| p.archs.include? 'sparc' }.inspect
+    patchdiag.select { |p| p.archs.include? 'sparc' }.inspect
     => [ "123456-78", ... ]
 
     # latest line added to patchdiag.xref
-    most_recent = patchdiag.all( :sort_by => :date, :order => ascending ).max
+    most_recent = patchdiag.sort_by( &:date ).last
     most_recent
     => "123456|78|..."
 
