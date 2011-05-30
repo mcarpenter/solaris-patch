@@ -116,6 +116,17 @@ EOF
     assert_equal( 1, Solaris::Patchdiag.new( s ).entries.size )
   end
 
+  def test_clone
+    @cloned = @patchdiag.clone
+    assert_equal( @patchdiag.class, @cloned.class )
+    assert_equal( @patchdiag.entries.size, @cloned.entries.size )
+    assert_equal( @patchdiag.entries.first, @cloned.entries.first )
+    assert_not_equal( @patchdiag.object_id, @cloned.object_id )
+    @patchdiag.entries.zip( @cloned.entries ).each do |x,y|
+      assert_not_equal( x.object_id, y.object_id )
+    end
+  end
+
   def test_entries
     assert_equal( @patchdiag_size, @patchdiag.entries.size )
   end
@@ -193,6 +204,10 @@ EOF
     assert_equal( '100791-04', @patchdiag.find( Solaris::Patch.new( '100791-04') ).first.patch.to_s )
   end
 
+  def test_last
+    assert_equal( '115302-01', @patchdiag.last.patch.to_s )
+  end
+
   def test_latest
     assert_raise( Solaris::Patch::NotFound ) do
       @patchdiag.latest( 123456 )
@@ -207,9 +222,21 @@ EOF
     assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791-05' ) ).patch.to_s )
   end
 
+  def test_sort
+    assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
+    sorted = @patchdiag.sort
+    assert_equal( Solaris::Patchdiag, sorted.class )
+    assert_equal( '800054-01', sorted.entries.last.patch.to_s )
+    assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
+  end
+
   def test_sort!
     assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
-    @patchdiag.sort!
+    size = @patchdiag.entries.size
+    ret = @patchdiag.sort!
+    assert_equal( @patchdiag, ret )
+    assert_equal( size, @patchdiag.entries.size )
+    assert_equal( Solaris::Patchdiag, @patchdiag.class )
     assert_equal( '800054-01', @patchdiag.entries.last.patch.to_s )
   end
 

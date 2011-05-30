@@ -53,6 +53,11 @@ module Solaris
       end
     end
 
+    # Create and return a deep copy of this object.
+    def clone
+      Marshal.load( Marshal.dump( self ) )
+    end
+
     # For Enumerator module: yields each Solaris::PatchdiagEntry in
     # turn.
     def each(&blk)
@@ -66,13 +71,18 @@ module Solaris
     # returned entries (normally only one) will match exactly. If only
     # a major number (xxxxxx) is supplied then all entries with that
     # major number are returned. Returns an empty array if no such
-    # patches can be found.
-    # This method overrides Enumerable#find.
+    # patches can be found. This method overrides Enumerable#find.
     def find(patch)
       patch = Patch.new( patch.to_s )
       property = patch.minor ? :to_s : :major
       comparator = patch.send( property )
       entries.select { |pde| pde.patch.send( property ) == comparator }
+    end
+
+    # Strangely Enumerable module does not define Enumerable#last (although
+    # it does define Enumerable#first) so we define last here.
+    def last
+      entries.last
     end
 
     # Return the Solaris::PatchdiagEntry of the latest version of the
@@ -86,10 +96,19 @@ module Solaris
               "Cannot find patch #{patch} in patchdiag.xref" )
     end
 
-    # Sorts the entries in place, takes an optional block. #sort is provided
-    # by the Enumerable mixin.
+    # Returns a (deep) copy of +self+ with the entries sorted, takes an
+    # optional block. This method overrides Enumerable#sort. See also
+    # Solaris::Patchdiag#sort!.
+    def sort(&blk)
+      clone.sort!( &blk )
+    end
+
+    # Returns +self+ with the entries sorted in place, takes an optional
+    # block. See also Solaris::Patchdiag#sort.
     def sort!(&blk)
+      # use @_entries since #entries returns a copy
       @_entries.sort!( &blk )
+      self
     end
 
     # Return an array of Solaris::Patch of the successors to the given
@@ -103,8 +122,8 @@ module Solaris
     # Throws Solaris::Patch::SuccessorLoop if the successor of a patch refers
     # to a patch that has already been referenced (an ancestor).
     #
-    # The ancestors parameter is a recursion accumulator and should not normally
-    # be assigned to by callers.
+    # The ancestors parameter is a recursion accumulator and should not
+    # normally be assigned to by callers.
     def successors(patch, ancestors=[])
       patch = Patch.new( patch.to_s )
       raise Solaris::Patch::SuccessorLoop,
