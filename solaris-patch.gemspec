@@ -2,7 +2,7 @@ Gem::Specification.new do |s|
   s.add_dependency( 'mechanize', '>= 1.0.0' )
   s.authors = [ 'Martin Carpenter' ]
   s.date = Time.now.strftime('%Y/%m/%d')
-  s.description = 'Provides methods to deal with Solaris patchdiag.xref and patches, including parsing patchdiag.xref, downloads from Oracle (patch and readme), patch version comparison, and eg seeking the latest non-obsolete version of a patch'
+  s.description = 'Provides methods to deal with Solaris patchdiag.xref and patches, including parsing patchdiag.xref, downloads from Oracle (patch and readme), patch version comparison, and generic patchdiag.xref manipulations such as seeking the latest non-obsolete version of a patch'
   s.email = 'mcarpenter@free.fr'
   s.extra_rdoc_files = %w{ LICENSE Rakefile README.rdoc }
   s.files = FileList[ 'lib/**/*', 'test/**/*' ].to_a
@@ -15,6 +15,6 @@ Gem::Specification.new do |s|
   s.rubyforge_project = nil
   s.summary = 'Facilitate the manipulation of Solaris patches'
   s.test_files = FileList[ "{test}/**/test_*.rb" ].to_a
-  s.version = '1.0.0'
+  s.version = '1.0.1'
 end
 
