@@ -19,6 +19,15 @@ module Solaris
     # URL of latest patchdiag.xref from Oracle.
     DEFAULT_XREF_URL = 'https://getupdates.oracle.com/reports/patchdiag.xref'
 
+    # The date of this patchdiag.xref, parsed from the header.
+    attr_writer :date
+
+    # The array of lines that comprise the header, sans trailing newline.
+    attr_accessor :header
+
+    # The array of lines that comprise the footer, sans trailing newline.
+    attr_accessor :footer
+
     # Create a new patchdiag database object by reading the given
     # xref file (this may be a filename (string) or a fileish object
     # (File, StringIO)). If no xref file is given then the default
@@ -26,10 +35,14 @@ module Solaris
     # by Patch Check Advanced (pca).
     def initialize(xref_file=DEFAULT_XREF_FILE)
       xref_file = File.new(xref_file) if xref_file.is_a?(String)
-      @entries = xref_file.
-        readlines.
-        reject { |line| line =~ /^#|^\s*$/ }. # discard comments, blanks
-        map { |line| PatchdiagEntry.new(line) }
+      @entries, @header, @footer = [], [], []
+      xref_file.each_line do |line|
+        if line =~ /^\d/
+          @entries << PatchdiagEntry.new(line)
+        else
+          (@entries.empty? ? @header : @footer) << line.chomp
+        end
+      end
     end
 
     # Download the patchdiag database and return it as a string.
@@ -55,6 +68,13 @@ module Solaris
     # Create and return a deep copy of this object.
     def clone
       Marshal.load(Marshal.dump(self))
+    end
+
+    # Return the date parsed from the patchdiag.xref comment lines.
+    def date
+      ## PATCHDIAG TOOL CROSS-REFERENCE FILE AS OF Jan/23/14 ##
+      @date ||= @header.find { |line| line =~ /\s(\w\w\w\/\d\d\/\d\d)\s/ } &&
+        Date.parse($1)
     end
 
     # For Enumerator module: yields each Solaris::PatchdiagEntry in
@@ -156,7 +176,7 @@ module Solaris
     # Returns a string representation of the patchdiag.xref. All comments
     # and blank lines are elided.
     def to_s
-      @entries.join("\n") << "\n"
+      (@header + @entries + @footer).join("\n") << "\n"
     end
     alias to_str to_s
 

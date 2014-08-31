@@ -186,6 +186,40 @@ EOF
     assert_equal(false, entry.obsolete?)
   end
 
+  def test_date
+    assert_equal(2011, @patchdiag.date.year)
+    assert_equal(2, @patchdiag.date.month)
+    assert_equal(10, @patchdiag.date.day)
+  end
+
+  # Some old patchdiag.xref (eg Sep/24/08) contain extraneous HTML <PRE> tags.
+  def test_pre
+    pd_s = <<-EOF
+<PRE>
+## PATCHDIAG TOOL CROSS-REFERENCE FILE AS OF Sep/24/08 ##
+##
+## Please note that certain patches which are listed in
+## Sun's Quick Reference Section or other patch reference
+## files are not publicly available, but instead are
+## available only to customers of Sun Microsystems who
+## have purchased an appropriate support services contract.
+## For more information about Sun support services contracts
+## visit www.sun.com/service
+100287|05|Oct/31/91| | | |  |Unbundled|||PC-NFS 3.5c: Jumbo patch (updated PRT.COM to v3.5c)
+100323|05|Feb/11/92| | | |  |Unbundled|||PC-NFS Advanced Telnet: bug fixes, National Character Set support
+100386|01|Sep/20/91| | | |  |Unbundled|||PC-NFS Programmer's Toolkit/2.0: Runtime modules
+139099|01|Sep/05/08|R|S| |  |10|sparc;|SUNWgtar:11.10.0,REV=2005.01.08.05.16;SUNWgtarS:11.10.0,REV=2005.01.08.05.16;SUNWsfman:11.10.0,REV=2005.01.08.05.16;|SunOS 5.10: gtar patch
+139100|01|Sep/05/08|R|S| |  |10_x86|i386;|SUNWgtar:11.10.0,REV=2005.01.08.01.09;SUNWgtarS:11.10.0,REV=2005.01.08.01.09;SUNWsfman:11.10.0,REV=2005.01.08.01.09;|SunOS 5.10_x86: gtar patch
+800054|01|Mar/16/01| | |O|  |Unbundled|||Obsoleted by: 111346-01 Hardware/PROM: Sun Fire 3800/4800/4810/680
+</PRE>
+EOF
+    pd = Solaris::Patchdiag.new(StringIO.new(pd_s))
+    assert_equal(2008, pd.date.year)
+    assert_equal(9, pd.date.month)
+    assert_equal(24, pd.date.day)
+    assert_equal(pd_s, pd.to_s)
+  end
+
   def test_find
     assert_equal([], @patchdiag.find(123456))
     assert_equal([], @patchdiag.find('123456'))
@@ -201,6 +235,10 @@ EOF
     assert_equal('100791-04', @patchdiag.find(Solaris::Patch.new(100791)).first.patch.to_s)
     assert_equal('100791-04', @patchdiag.find(Solaris::Patch.new('100791')).first.patch.to_s)
     assert_equal('100791-04', @patchdiag.find(Solaris::Patch.new('100791-04')).first.patch.to_s)
+  end
+
+  def test_header
+    assert_equal(11, @patchdiag.header.length)
   end
 
   def test_last
@@ -279,6 +317,10 @@ EOF
 
   def test_download!
     skip 'Mock required'
+  end
+
+  def test_to_s
+    assert_equal(@patchdiag_string, @patchdiag.to_s)
   end
 
   private
