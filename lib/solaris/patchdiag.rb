@@ -156,7 +156,7 @@ module Solaris
     # Returns a string representation of the patchdiag.xref. All comments
     # and blank lines are elided.
     def to_s
-      @entries.join("\n")
+      @entries.join("\n") << "\n"
     end
     alias to_str to_s
 
