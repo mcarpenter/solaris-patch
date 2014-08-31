@@ -55,8 +55,12 @@ module Solaris
     # patchdiag.xref).
     attr_accessor :y2k
 
+    # Number of pipe-delimited fields in a patchdiag line.
+    FIELDS = 11
+
     def initialize(patchdiag_line)
-      fields = patchdiag_line.split('|', 11)
+      fields = patchdiag_line.split('|', FIELDS)
+      raise ArgumentError, "Not enough fields in line: #{patchdiag_line}" unless fields.size == FIELDS
       major, minor, date, @recommended, @security, @obsolete, bad, @os, archs, pkgs, @synopsis = *fields
       @archs = archs.split(';')
       if date == ''

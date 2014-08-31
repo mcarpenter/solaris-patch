@@ -118,6 +118,14 @@ class TestPatchdiagEntry < Test::Unit::TestCase #:nodoc:
     end
   end
 
+  def test_not_enough_fields
+    # YB field missing
+    line = '104018|10|Jul/02/04| |S|O|Unbundled|sparc;|SUNWsnmct:2.3;SUNWccrcv:1.2;SUNWsnmct:2.3,PATCH=10;SUNWccsnd:1.2;SUNWccsnd:1.2,PATCH=10;SUNWccrcv:1.2,PATCH=10;SUNWcccfg:1.2;SUNWsnmpd:2.3;SUNWcccfg:1.2,PATCH=10;SUNWsnmpd:2.3,PATCH=10;SUNWsnmag:2.3,PATCH=10;SUNWsnmag:2.3;|WITHDRAWN PATCH Obsoleted by: 104018-11 Solstice Site/SunNet/Domai'
+    assert_raise(ArgumentError) do
+      Solaris::PatchdiagEntry.new(line)
+    end
+  end
+
   private
 
   def successor(line)
