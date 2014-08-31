@@ -26,7 +26,7 @@ module Solaris
     # by Patch Check Advanced (pca).
     def initialize(xref_file=DEFAULT_XREF_FILE)
       xref_file = File.new(xref_file) if xref_file.is_a?(String)
-      @_entries = xref_file.
+      @entries = xref_file.
         readlines.
         reject { |line| line =~ /^#|^\s*$/ }. # discard comments, blanks
         map { |line| PatchdiagEntry.new(line) }
@@ -60,7 +60,7 @@ module Solaris
     # For Enumerator module: yields each Solaris::PatchdiagEntry in
     # turn.
     def each(&blk)
-      @_entries.each(&blk)
+      @entries.each(&blk)
     end
 
     # Returns an array of Solaris::PatchdiagEntry from the
@@ -75,13 +75,13 @@ module Solaris
       patch = Patch.new(patch.to_s)
       property = patch.minor ? :to_s : :major
       comparator = patch.send(property)
-      entries.select { |pde| pde.patch.send(property) == comparator }
+      @entries.select { |pde| pde.patch.send(property) == comparator }
     end
 
     # Strangely Enumerable module does not define Enumerable#last (although
     # it does define Enumerable#first) so we define last here.
     def last
-      entries.last
+      @entries.last
     end
 
     # Return the Solaris::PatchdiagEntry of the latest version of the
@@ -105,8 +105,8 @@ module Solaris
     # Returns +self+ with the entries sorted in place, takes an optional
     # block. See also Solaris::Patchdiag#sort.
     def sort!(&blk)
-      # use @_entries since #entries returns a copy
-      @_entries.sort!(&blk)
+      # use @entries since #entries returns a copy
+      @entries.sort!(&blk)
       self
     end
 
@@ -156,7 +156,7 @@ module Solaris
     # Returns a string representation of the patchdiag.xref. All comments
     # and blank lines are elided.
     def to_s
-      entries.join("\n")
+      @entries.join("\n")
     end
     alias to_str to_s
 
