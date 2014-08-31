@@ -1,4 +1,3 @@
-
 # Namespace for child classes.
 module Solaris
 
@@ -7,4 +6,3 @@ module Solaris
   require 'solaris/patchdiag_entry'
 
 end # Solaris
-

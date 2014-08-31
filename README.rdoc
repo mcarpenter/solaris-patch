@@ -7,7 +7,7 @@ Copyright:: Copyright (c) Martin Carpenter 2011
 
 == About
 The solaris-patch gem helps with the manipulation of SunOS and Solaris
-patches. 
+patches.
 
 * Read (or write!) patchdiag.xref files.
 * Find latest version of a patch.
@@ -20,30 +20,30 @@ patches.
 === Download a patch
 
     require 'solaris/patch'
-    Solaris::Patch.download_patch!( '123456-78',
-                                    :to_file => '/tmp/123456-78.zip' )
+    Solaris::Patch.download_patch!('123456-78',
+                                   :to_file => '/tmp/123456-78.zip')
 
 Alternatively:
 
-    patch = Solaris::Patch.new( '123456-78' )
-    patch.download_patch!( :to_dir => '/tmp' )
+    patch = Solaris::Patch.new('123456-78')
+    patch.download_patch!(:to_dir => '/tmp')
 
 === Download a readme
 
     require 'solaris/patch'
-    Solaris::Patch.download_readme!( '123456-78',
-                                     :to_file => '/tmp/123456-78.txt' )
+    Solaris::Patch.download_readme!('123456-78',
+                                    :to_file => '/tmp/123456-78.txt')
 
 === Get the latest version of a patch
 
     require 'solaris/patch'
-    Solaris::Patchdiag.open( '/tmp/patchdiag.xref' ).latest( '123456-01' )
+    Solaris::Patchdiag.open('/tmp/patchdiag.xref').latest('123456-01')
     => "123456|12|..."
 
 === Get the latest non-obsolete version of a possibly obsoleted patch
 
     require 'solaris/patch'
-    Solaris::Patchdiag.open( '/tmp/patchdiag.xref' ).successor( '123456-01' )
+    Solaris::Patchdiag.open('/tmp/patchdiag.xref').successor('123456-01')
     => "234567|12|..."
 
 === Interrogate patchdiag.xref
@@ -51,14 +51,14 @@ Alternatively:
     require 'solaris/patch'
 
     # slurp in patchdiag.xref
-    patchdiag = Solaris::Patchdiag.new( '/tmp/patchdiag.xref' )
+    patchdiag = Solaris::Patchdiag.new('/tmp/patchdiag.xref')
 
     # all sparc patches
     patchdiag.select { |p| p.archs.include? 'sparc' }.inspect
-    => [ "123456-78", ... ]
+    => ["123456-78", ...]
 
     # latest line added to patchdiag.xref
-    most_recent = patchdiag.sort_by( &:date ).last
+    most_recent = patchdiag.sort_by(&:date).last
     most_recent
     => "123456|78|..."
 
@@ -74,4 +74,3 @@ Alternatively:
 
 Dates in patchdiag.xref are Mon/dd/yy format. This gem will break in
 2050 since it assumes year 50 and above is in the 20th century.
-

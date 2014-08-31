@@ -1,4 +1,3 @@
-
 module Solaris
 
   # Utility module.
@@ -34,28 +33,28 @@ module Solaris
       end
       # If we got a filename then open now before attempting download
       raise ArgumentError, 'Cannot specify both :to_dir and :to_file' if filename && dirname
-      filename = File.join( dirname, File.basename( url ) ) if dirname
+      filename = File.join(dirname, File.basename(url)) if dirname
       begin
-        file = File.open( filename, 'w' ) if filename
+        file = File.open(filename, 'w') if filename
         # Set agent authentication parameters
         if opts[:user] && opts[:password]
-          agent.basic_auth( opts[:user], opts[:password] )
+          agent.basic_auth(opts[:user], opts[:password])
         elsif opts[:user]
           raise ArgumentError, 'Cannot authenticate without a password'
         elsif opts[:password]
           raise ArgumentError, 'Cannot authenticate without a username'
         end
         # Download file and save as required
-        page = agent.get( url )
+        page = agent.get(url)
         if file
-          file.write( page.body )
+          file.write(page.body)
           file.close
         end
       rescue => exception
         # Try to remove incomplete file on error
         if file
           begin file.close ; rescue ; end
-          begin File.unlink( file ) ; rescue ; end
+          begin File.unlink(file) ; rescue ; end
         end
         raise exception # rethrow original exception
       end
@@ -65,4 +64,3 @@ module Solaris
   end # Util
 
 end # Solaris
-

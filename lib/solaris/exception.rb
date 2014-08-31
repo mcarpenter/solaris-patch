@@ -1,4 +1,3 @@
-
 module Solaris
 
   class Patch
@@ -32,4 +31,3 @@ module Solaris
   end
 
 end # Solaris
-

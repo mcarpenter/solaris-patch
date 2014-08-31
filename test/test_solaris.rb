@@ -1,4 +1,3 @@
-
 require 'test/unit'
 require 'solaris'
 
@@ -22,8 +21,7 @@ class TestSolaris < Test::Unit::TestCase #:nodoc:
   end
 
   def test_test
-    assert_raise( NameError ) { Solaris::DoesNotExist }
+    assert_raise(NameError) { Solaris::DoesNotExist }
   end
 
 end
-

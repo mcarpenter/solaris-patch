@@ -1,4 +1,3 @@
-
 require 'test/unit'
 require 'stringio'
 require 'solaris/patchdiag'
@@ -77,9 +76,9 @@ class TestPatchdiag < Test::Unit::TestCase #:nodoc:
 654322|01|Jan/01/00| | |O|  |Unbundled|||Obsoleted by: 654321-05
 115302|01|Jul/08/03| | |O| B|Unbundled|||WITHDRAWN PATCH Obsoleted by: 115302-02 Hardware/PROM: CP2060/CP20
 EOF
-    @patchdiag_fileish = StringIO.new( @patchdiag_string )
+    @patchdiag_fileish = StringIO.new(@patchdiag_string)
     @patchdiag_size = 56
-    @patchdiag = Solaris::Patchdiag.open( @patchdiag_fileish )
+    @patchdiag = Solaris::Patchdiag.open(@patchdiag_fileish)
   end
 
   def teardown
@@ -91,191 +90,191 @@ EOF
   end
 
   def test_new_by_fileish
-    assert_equal( @patchdiag_size, @patchdiag.entries.size )
+    assert_equal(@patchdiag_size, @patchdiag.entries.size)
   end
 
   def test_new_by_filename
-    temp = Tempfile.new( 'test_patchdiag' )
+    temp = Tempfile.new('test_patchdiag')
     path = temp.path
-    temp.write( @patchdiag_fileish )
+    temp.write(@patchdiag_fileish)
     temp.close
-    patchdiag = Solaris::Patchdiag.new( path )
-    File.unlink( path )
-    assert_equal( @patchdiag_size, @patchdiag.entries.size )
+    patchdiag = Solaris::Patchdiag.new(path)
+    File.unlink(path)
+    assert_equal(@patchdiag_size, @patchdiag.entries.size)
   end
 
   def test_new_empty_file
-    if File.exists?( @empty_file )
-      patchdiag = Solaris::Patchdiag.new( @empty_file )   
-      assert_equal( 0, patchdiag.entries.size )
+    if File.exists?(@empty_file)
+      patchdiag = Solaris::Patchdiag.new(@empty_file)
+      assert_equal(0, patchdiag.entries.size)
     end
   end
 
   def test_no_tailing_newline
     s = StringIO.new('115302|01|Jul/08/03| | |O| B|Unbundled|||blah blah')
-    assert_equal( 1, Solaris::Patchdiag.new( s ).entries.size )
+    assert_equal(1, Solaris::Patchdiag.new(s).entries.size)
   end
 
   def test_clone
     @cloned = @patchdiag.clone
-    assert_equal( @patchdiag.class, @cloned.class )
-    assert_equal( @patchdiag.entries.size, @cloned.entries.size )
-    assert_equal( @patchdiag.entries.first, @cloned.entries.first )
-    assert_not_equal( @patchdiag.object_id, @cloned.object_id )
-    @patchdiag.entries.zip( @cloned.entries ).each do |x,y|
-      assert_not_equal( x.object_id, y.object_id )
+    assert_equal(@patchdiag.class, @cloned.class)
+    assert_equal(@patchdiag.entries.size, @cloned.entries.size)
+    assert_equal(@patchdiag.entries.first, @cloned.entries.first)
+    assert_not_equal(@patchdiag.object_id, @cloned.object_id)
+    @patchdiag.entries.zip(@cloned.entries).each do |x,y|
+      assert_not_equal(x.object_id, y.object_id)
     end
   end
 
   def test_entries
-    assert_equal( @patchdiag_size, @patchdiag.entries.size )
+    assert_equal(@patchdiag_size, @patchdiag.entries.size)
   end
 
   def test_sort_by_date_order_ascending
-    all = @patchdiag.sort_by( &:date )
+    all = @patchdiag.sort_by(&:date)
     first = all.first.patch # oldest
     last = all.last.patch # newest
-    assert_equal( Solaris::Patch.new( '100386-01' ), first )
-    assert_equal( Solaris::Patch.new( '146443-01' ), last )
+    assert_equal(Solaris::Patch.new('100386-01'), first)
+    assert_equal(Solaris::Patch.new('146443-01'), last)
   end
 
   def test_sort_by_patch_order_ascending
     all = @patchdiag.sort
     first = all.first.patch # smallest
     last = all.last.patch # largest
-    assert_equal( Solaris::Patch.new( '800054-01' ), last )
-    assert_equal( Solaris::Patch.new( '100287-05' ), first )
+    assert_equal(Solaris::Patch.new('800054-01'), last)
+    assert_equal(Solaris::Patch.new('100287-05'), first)
   end
 
   def test_open_block
-    ret = Solaris::Patchdiag.open( @patchdiag_fileish ) do |patchdiag|
-      assert_equal( Solaris::Patchdiag, patchdiag.class )
+    ret = Solaris::Patchdiag.open(@patchdiag_fileish) do |patchdiag|
+      assert_equal(Solaris::Patchdiag, patchdiag.class)
       :return_code
     end
-    assert_equal( :return_code, ret )
+    assert_equal(:return_code, ret)
   end
 
   def test_open_return
-    assert_equal( Solaris::Patchdiag, @patchdiag.class )
+    assert_equal(Solaris::Patchdiag, @patchdiag.class)
   end
 
   def test_bad
-    entry = @patchdiag.latest( '115302' )
-    assert_equal( true, entry.bad? )
-    entry = @patchdiag.latest( '654321-01' )
-    assert_equal( false, entry.bad? )
+    entry = @patchdiag.latest('115302')
+    assert_equal(true, entry.bad?)
+    entry = @patchdiag.latest('654321-01')
+    assert_equal(false, entry.bad?)
   end
 
   def test_recommended
-    entry = @patchdiag.latest( '146279-01' )
-    assert_equal( true, entry.recommended? )
-    entry = @patchdiag.latest( '654321-01' )
-    assert_equal( false, entry.recommended? )
+    entry = @patchdiag.latest('146279-01')
+    assert_equal(true, entry.recommended?)
+    entry = @patchdiag.latest('654321-01')
+    assert_equal(false, entry.recommended?)
   end
 
   def test_security
-    entry = @patchdiag.latest( '146279-01' )
-    assert_equal( true, entry.security? )
-    entry = @patchdiag.latest( '654321-01' )
-    assert_equal( false, entry.security? )
+    entry = @patchdiag.latest('146279-01')
+    assert_equal(true, entry.security?)
+    entry = @patchdiag.latest('654321-01')
+    assert_equal(false, entry.security?)
   end
 
   def test_obsolete
-    entry = @patchdiag.latest( '115302-01' )
-    assert_equal( true, entry.obsolete? )
-    entry = @patchdiag.latest( '100287-05' )
-    assert_equal( false, entry.obsolete? )
+    entry = @patchdiag.latest('115302-01')
+    assert_equal(true, entry.obsolete?)
+    entry = @patchdiag.latest('100287-05')
+    assert_equal(false, entry.obsolete?)
   end
 
   def test_find
-    assert_equal( [], @patchdiag.find( 123456 ) )
-    assert_equal( [], @patchdiag.find( '123456' ) )
-    assert_equal( [], @patchdiag.find( '123456-78' ) )
-    assert_equal( [], @patchdiag.find( Solaris::Patch.new( 123456 ) ) )
-    assert_equal( [], @patchdiag.find( Solaris::Patch.new( '123456' ) ) )
-    assert_equal( [], @patchdiag.find( Solaris::Patch.new( '123456-78' ) ) )
-    assert_equal( [], @patchdiag.find( '100791-01' ) )
-    assert_equal( [], @patchdiag.find( Solaris::Patch.new( '100791-01' ) ) )
-    assert_equal( '100791-04', @patchdiag.find( 100791 ).first.patch.to_s )
-    assert_equal( '100791-04', @patchdiag.find( '100791' ).first.patch.to_s )
-    assert_equal( '100791-04', @patchdiag.find( '100791-04' ).first.patch.to_s )
-    assert_equal( '100791-04', @patchdiag.find( Solaris::Patch.new( 100791) ).first.patch.to_s )
-    assert_equal( '100791-04', @patchdiag.find( Solaris::Patch.new( '100791') ).first.patch.to_s )
-    assert_equal( '100791-04', @patchdiag.find( Solaris::Patch.new( '100791-04') ).first.patch.to_s )
+    assert_equal([], @patchdiag.find(123456))
+    assert_equal([], @patchdiag.find('123456'))
+    assert_equal([], @patchdiag.find('123456-78'))
+    assert_equal([], @patchdiag.find(Solaris::Patch.new(123456)))
+    assert_equal([], @patchdiag.find(Solaris::Patch.new('123456')))
+    assert_equal([], @patchdiag.find(Solaris::Patch.new('123456-78')))
+    assert_equal([], @patchdiag.find('100791-01'))
+    assert_equal([], @patchdiag.find(Solaris::Patch.new('100791-01')))
+    assert_equal('100791-04', @patchdiag.find(100791).first.patch.to_s)
+    assert_equal('100791-04', @patchdiag.find('100791').first.patch.to_s)
+    assert_equal('100791-04', @patchdiag.find('100791-04').first.patch.to_s)
+    assert_equal('100791-04', @patchdiag.find(Solaris::Patch.new(100791)).first.patch.to_s)
+    assert_equal('100791-04', @patchdiag.find(Solaris::Patch.new('100791')).first.patch.to_s)
+    assert_equal('100791-04', @patchdiag.find(Solaris::Patch.new('100791-04')).first.patch.to_s)
   end
 
   def test_last
-    assert_equal( '115302-01', @patchdiag.last.patch.to_s )
+    assert_equal('115302-01', @patchdiag.last.patch.to_s)
   end
 
   def test_latest
-    assert_raise( Solaris::Patch::NotFound ) do
-      @patchdiag.latest( 123456 )
+    assert_raise(Solaris::Patch::NotFound) do
+      @patchdiag.latest(123456)
     end
-    assert_equal( '100791-05', @patchdiag.latest( 100791 ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( '100791' ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( '100791-01' ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( '100791-05' ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( 100791 ) ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791' ) ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791-01' ) ).patch.to_s )
-    assert_equal( '100791-05', @patchdiag.latest( Solaris::Patch.new( '100791-05' ) ).patch.to_s )
+    assert_equal('100791-05', @patchdiag.latest(100791).patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest('100791').patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest('100791-01').patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest('100791-05').patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest(Solaris::Patch.new(100791)).patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest(Solaris::Patch.new('100791')).patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest(Solaris::Patch.new('100791-01')).patch.to_s)
+    assert_equal('100791-05', @patchdiag.latest(Solaris::Patch.new('100791-05')).patch.to_s)
   end
 
   def test_sort
-    assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
+    assert_equal('115302-01', @patchdiag.entries.last.patch.to_s)
     sorted = @patchdiag.sort
-    assert_equal( Solaris::Patchdiag, sorted.class )
-    assert_equal( '800054-01', sorted.entries.last.patch.to_s )
-    assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
+    assert_equal(Solaris::Patchdiag, sorted.class)
+    assert_equal('800054-01', sorted.entries.last.patch.to_s)
+    assert_equal('115302-01', @patchdiag.entries.last.patch.to_s)
   end
 
   def test_sort!
-    assert_equal( '115302-01', @patchdiag.entries.last.patch.to_s )
+    assert_equal('115302-01', @patchdiag.entries.last.patch.to_s)
     size = @patchdiag.entries.size
     ret = @patchdiag.sort!
-    assert_equal( @patchdiag, ret )
-    assert_equal( size, @patchdiag.entries.size )
-    assert_equal( Solaris::Patchdiag, @patchdiag.class )
-    assert_equal( '800054-01', @patchdiag.entries.last.patch.to_s )
+    assert_equal(@patchdiag, ret)
+    assert_equal(size, @patchdiag.entries.size)
+    assert_equal(Solaris::Patchdiag, @patchdiag.class)
+    assert_equal('800054-01', @patchdiag.entries.last.patch.to_s)
   end
 
   def test_successor
-    assert_raise( Solaris::Patch::NotFound ) do
-      @patchdiag.latest( 123456 )
+    assert_raise(Solaris::Patch::NotFound) do
+      @patchdiag.latest(123456)
     end
-    assert_equal( '100287-05', @patchdiag.successor( 100287 ).patch.to_s )
-    assert_equal( '100287-05', @patchdiag.successor( '100287' ).patch.to_s )
-    assert_equal( '100287-05', @patchdiag.successor( '100287-05' ).patch.to_s )
-    assert_equal( '100287-05', @patchdiag.successor( Solaris::Patch.new( '100287-05' ) ).patch.to_s )
-    assert_equal( '100974-02', @patchdiag.successor( 100791 ).patch.to_s )
-    assert_raise( Solaris::Patch::NotFound ) do
-      @patchdiag.successor( 123456 )
+    assert_equal('100287-05', @patchdiag.successor(100287).patch.to_s)
+    assert_equal('100287-05', @patchdiag.successor('100287').patch.to_s)
+    assert_equal('100287-05', @patchdiag.successor('100287-05').patch.to_s)
+    assert_equal('100287-05', @patchdiag.successor(Solaris::Patch.new('100287-05')).patch.to_s)
+    assert_equal('100974-02', @patchdiag.successor(100791).patch.to_s)
+    assert_raise(Solaris::Patch::NotFound) do
+      @patchdiag.successor(123456)
     end
-    assert_raise( Solaris::Patch::NotFound ) do
-      @patchdiag.successor( 100393 ) # successor 100394 not in patchdiag.xref
+    assert_raise(Solaris::Patch::NotFound) do
+      @patchdiag.successor(100393) # successor 100394 not in patchdiag.xref
     end
-    assert_raise( Solaris::Patch::NotFound ) do
-      @patchdiag.successor( '654322-05' )
+    assert_raise(Solaris::Patch::NotFound) do
+      @patchdiag.successor('654322-05')
     end
-    assert_equal( '100807-04', @patchdiag.successor( '100807-01' ).patch.to_s )
-    assert_raise( Solaris::Patch::InvalidSuccessor ) do
-      @patchdiag.successor( '100807-03' ) # successor 100807-03 WITHDRAWN
+    assert_equal('100807-04', @patchdiag.successor('100807-01').patch.to_s)
+    assert_raise(Solaris::Patch::InvalidSuccessor) do
+      @patchdiag.successor('100807-03') # successor 100807-03 WITHDRAWN
     end
-    assert_raise( Solaris::Patch::SuccessorLoop ) do
-      @patchdiag.successor( 654321 )
+    assert_raise(Solaris::Patch::SuccessorLoop) do
+      @patchdiag.successor(654321)
     end
-    assert_raise( Solaris::Patch::SuccessorLoop ) do
-      @patchdiag.successor( '654321-01' )
+    assert_raise(Solaris::Patch::SuccessorLoop) do
+      @patchdiag.successor('654321-01')
     end
-    assert_raise( Solaris::Patch::NotFound ) do
-      @patchdiag.successor( 115302 )
+    assert_raise(Solaris::Patch::NotFound) do
+      @patchdiag.successor(115302)
     end
   end
 
   def test_successors
-    assert_equal( %w{ 100791 100791-05 100974 100974-02 },
-                 @patchdiag.successors( 100791 ).map(&:to_s) )
+    assert_equal(%w{ 100791 100791-05 100974 100974-02 },
+                 @patchdiag.successors(100791).map(&:to_s))
   end
 
   def test_download!
@@ -285,8 +284,7 @@ EOF
   private
 
   def successor(patch)
-    @patchdiag.successor( patch ).patch.to_s
+    @patchdiag.successor(patch).patch.to_s
   end
 
 end
-

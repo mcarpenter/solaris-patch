@@ -1,4 +1,3 @@
-
 module Solaris
 
   # Class to represent a patch number.
@@ -17,7 +16,7 @@ module Solaris
       :patch => 'https://getupdates.oracle.com/all_unsigned/%s.zip',
       :readme => 'https://getupdates.oracle.com/readme/README.%s'
     }
-    
+
     # The major number of the patch (integer), the part before the dash.
     attr_accessor :major
 
@@ -45,7 +44,7 @@ module Solaris
     # TLDR: Patch.new('123456-78')
     def initialize(major=nil, minor=nil)
       if major
-        patch_no = major.to_s + ( minor ? "-#{minor}" : '' )
+        patch_no = major.to_s + (minor ? "-#{minor}" : '')
         if patch_no =~ /^(\d+)(-(\d+))?$/
           @major = $1.to_i
           @minor = $3.to_i if $3
@@ -57,18 +56,18 @@ module Solaris
 
     # Download this patch. For the options hash see private method Patch#download!
     def download_patch!(opts={})
-      download!( :patch, opts )
+      download!(:patch, opts)
     end
 
     # Download this README. For the options hash see private method Patch#download!
     def download_readme!(opts={})
-      download!( :readme, opts )
+      download!(:readme, opts)
     end
 
     # Return a string representation of this patch. If the minor
     # number has not been set then just return the major number.
     def to_s
-      minor ? "#{@major}-#{Patch.pad_minor( @minor )}" : "#{@major}"
+      minor ? "#{@major}-#{Patch.pad_minor(@minor)}" : "#{@major}"
     end
 
     # Compare patch versions. (Performs a string compare on the full patch numbers).
@@ -79,20 +78,20 @@ module Solaris
     # Download the given patch (this may be a Patch object or a string
     # like '123456-78'). For the options hash see Patch#download!.
     def Patch.download_patch!(patch, opts={})
-      patch_to_dl = Patch.new( patch.to_s )
-      patch_to_dl.download_patch!( opts )
+      patch_to_dl = Patch.new(patch.to_s)
+      patch_to_dl.download_patch!(opts)
     end
 
     # Download the given readme (this may be a Patch object or a string
     # like '123456-78'). For the options hash see Patch#download!.
     def Patch.download_readme!(patch, opts={})
-      patch_to_dl = Patch.new( patch.to_s )
-      patch_to_dl.download_readme!( opts )
+      patch_to_dl = Patch.new(patch.to_s)
+      patch_to_dl.download_readme!(opts)
     end
 
     # Left pad a minor version number with zeros as required.
     def Patch.pad_minor(minor)
-      "#{minor.to_s.rjust( 2, '0' )}"
+      "#{minor.to_s.rjust(2, '0')}"
     end
 
     private
@@ -102,15 +101,14 @@ module Solaris
     def download!(type, opts={})
       raise ArgumentError, "Patch #{self.inspect} requires a major number to download" unless @major
       raise ArgumentError, "Patch #{self.inspect} requires a minor number to download" unless @minor
-      raise ArgumentError, "Unknown type #{type.inspect}" unless URL[ type ]
-      url = URL[ type ] % self.to_s
+      raise ArgumentError, "Unknown type #{type.inspect}" unless URL[type]
+      url = URL[type] % self.to_s
       opts = {
         :agent => 'Wget/1.10.2', # default user agent, required by Oracle
-      }.merge( opts )
-      Solaris::Util.download!( url, opts )
+      }.merge(opts)
+      Solaris::Util.download!(url, opts)
     end
-      
+
   end # Patch
 
 end # Solaris
-

@@ -1,4 +1,3 @@
-
 module Solaris
 
   # Class to represent a line from Sun's patchdiag.xref patch "database".
@@ -57,22 +56,22 @@ module Solaris
     attr_accessor :y2k
 
     def initialize(patchdiag_line)
-      fields = patchdiag_line.split( '|', 11 )
+      fields = patchdiag_line.split('|', 11)
       major, minor, date, @recommended, @security, @obsolete, bad, @os, archs, pkgs, @synopsis = *fields
-      @archs = archs.split( ';' )
+      @archs = archs.split(';')
       if date == ''
         year, month, day = 1970, 1, 1
       else
-        month_s, day_s, year_s = *date.split( '/' )
-        year = ( year_s.to_i > 50 ? "19#{year_s}" : "20#{year_s}" ).to_i
-        month = Date::ABBR_MONTHNAMES.index( month_s )
+        month_s, day_s, year_s = *date.split('/')
+        year = (year_s.to_i > 50 ? "19#{year_s}" : "20#{year_s}").to_i
+        month = Date::ABBR_MONTHNAMES.index(month_s)
         day = day_s.to_i
       end
       @bad = bad =~ /B/ ? 'B' : ' '
       @y2k = bad =~ /Y/ ? 'Y' : ' '
-      @date = Date.new( year, month, day )
-      @patch = Patch.new( major, minor )
-      @pkgs = pkgs.split( ';' )
+      @date = Date.new(year, month, day)
+      @patch = Patch.new(major, minor)
+      @pkgs = pkgs.split(';')
       @synopsis.chomp!
     end
 
@@ -82,12 +81,12 @@ module Solaris
 
     # Download this patch. For options hash see Patch#download!.
     def download_patch!(opts={}) ;
-      @patch.download_patch!( opts )
+      @patch.download_patch!(opts)
     end
 
     # Download the README for this patch. For options hash see Patch#download!.
     def download_readme!(opts={})
-      @patch.download_readme!( opts )
+      @patch.download_readme!(opts)
     end
 
     # Returns this entries major patch number as an integer.
@@ -141,7 +140,7 @@ module Solaris
 
       # See if we can find a successor
       if synopsis =~ /obsolete(d?) by\s*(:?)\s*(\d+(-\d+)?)/i
-        Patch.new( $3 )
+        Patch.new($3)
       else
         raise Solaris::Patch::InvalidSuccessor,
           "Failed to parse successor to obsolete patchdiag entry for patch #{patch.inspect}"
@@ -151,16 +150,17 @@ module Solaris
     # Output this patchdiag xref entry as a string, in format of Oracle's
     # database.
     def to_s
-      [ patch.major,
-        Patch.pad_minor( patch.minor ),
+      [
+        patch.major,
+        Patch.pad_minor(patch.minor),
         date_s,
         @recommended,
         @security,
         @obsolete,
         @bad + @y2k,
         @os,
-        join_semis( @archs ),
-        join_semis( @pkgs ),
+        join_semis(@archs),
+        join_semis(@pkgs),
         @synopsis
       ].join('|')
     end
@@ -179,7 +179,8 @@ module Solaris
 
     # Convert the Date object to a date string as found in patchdiag.xref.
     def date_s
-      [ Date::ABBR_MONTHNAMES[ @date.mon ], # month eg Jan
+      [
+        Date::ABBR_MONTHNAMES[@date.mon], # month eg Jan
         @date.mday.to_s.rjust(2, '0'), # day of month
         @date.year % 100 # 2 digit year
       ].join('/')
@@ -195,4 +196,3 @@ module Solaris
   end # PatchdiagEntry
 
 end # Solaris
-

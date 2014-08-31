@@ -1,4 +1,3 @@
-
 module Solaris
 
   # Class to represent the Oracle patchdiag "database" (file).
@@ -26,11 +25,11 @@ module Solaris
     # is read (/var/tmp/patchdiag.xref); this is the cache file used
     # by Patch Check Advanced (pca).
     def initialize(xref_file=DEFAULT_XREF_FILE)
-      xref_file = File.new( xref_file ) if xref_file.is_a?( String )
+      xref_file = File.new(xref_file) if xref_file.is_a?(String)
       @_entries = xref_file.
         readlines.
         reject { |line| line =~ /^#|^\s*$/ }. # discard comments, blanks
-        map { |line| PatchdiagEntry.new( line ) }
+        map { |line| PatchdiagEntry.new(line) }
     end
 
     # Download the patchdiag database and return it as a string.
@@ -38,14 +37,14 @@ module Solaris
     # to disk unless :to_file or :to_dir are given.
     # For the options hash argument see Solaris::Util.download!
     def Patchdiag.download!(opts={})
-      url = opts.delete( :url ) || DEFAULT_XREF_URL
-      Util.download!( url, opts )
+      url = opts.delete(:url) || DEFAULT_XREF_URL
+      Util.download!(url, opts)
     end
 
     # Open the given optional patchdiag xref file and yield to the
     # optional block.
     def Patchdiag.open(xref_file=DEFAULT_XREF_FILE, &blk)
-      patchdiag = Patchdiag.new( xref_file )
+      patchdiag = Patchdiag.new(xref_file)
       if block_given?
         yield patchdiag
       else
@@ -55,13 +54,13 @@ module Solaris
 
     # Create and return a deep copy of this object.
     def clone
-      Marshal.load( Marshal.dump( self ) )
+      Marshal.load(Marshal.dump(self))
     end
 
     # For Enumerator module: yields each Solaris::PatchdiagEntry in
     # turn.
     def each(&blk)
-      @_entries.each( &blk )
+      @_entries.each(&blk)
     end
 
     # Returns an array of Solaris::PatchdiagEntry from the
@@ -73,10 +72,10 @@ module Solaris
     # major number are returned. Returns an empty array if no such
     # patches can be found. This method overrides Enumerable#find.
     def find(patch)
-      patch = Patch.new( patch.to_s )
+      patch = Patch.new(patch.to_s)
       property = patch.minor ? :to_s : :major
-      comparator = patch.send( property )
-      entries.select { |pde| pde.patch.send( property ) == comparator }
+      comparator = patch.send(property)
+      entries.select { |pde| pde.patch.send(property) == comparator }
     end
 
     # Strangely Enumerable module does not define Enumerable#last (although
@@ -90,24 +89,24 @@ module Solaris
     # Solaris::Patch). Throws Solaris::Patch::NotFound if the patch
     # cannot be found in patchdiag.xref.
     def latest(patch)
-      major = Patch.new( patch.to_s ).major
-      find( major ).max ||
-        raise( Solaris::Patch::NotFound,
-              "Cannot find patch #{patch} in patchdiag.xref" )
+      major = Patch.new(patch.to_s).major
+      find(major).max ||
+        raise(Solaris::Patch::NotFound,
+              "Cannot find patch #{patch} in patchdiag.xref")
     end
 
     # Returns a (deep) copy of +self+ with the entries sorted, takes an
     # optional block. This method overrides Enumerable#sort. See also
     # Solaris::Patchdiag#sort!.
     def sort(&blk)
-      clone.sort!( &blk )
+      clone.sort!(&blk)
     end
 
     # Returns +self+ with the entries sorted in place, takes an optional
     # block. See also Solaris::Patchdiag#sort.
     def sort!(&blk)
       # use @_entries since #entries returns a copy
-      @_entries.sort!( &blk )
+      @_entries.sort!(&blk)
       self
     end
 
@@ -125,21 +124,21 @@ module Solaris
     # The ancestors parameter is a recursion accumulator and should not
     # normally be assigned to by callers.
     def successors(patch, ancestors=[])
-      patch = Patch.new( patch.to_s )
+      patch = Patch.new(patch.to_s)
       raise Solaris::Patch::SuccessorLoop,
-        "Loop detected for patch #{patch} with ancestors #{ancestors.inspect}" if ancestors.include?( patch )
+        "Loop detected for patch #{patch} with ancestors #{ancestors.inspect}" if ancestors.include?(patch)
       ancestors << patch
       if ! patch.minor # patch has no minor number
-        successors( latest( patch ).patch, ancestors )
-      elsif ! entry = find( patch ).last # explicit patch not found
-        latest_patch = latest( patch ).patch
+        successors(latest(patch).patch, ancestors)
+      elsif ! entry = find(patch).last # explicit patch not found
+        latest_patch = latest(patch).patch
         raise Solaris::Patch::NotFound,
           "Patch #{patch} not found and has no later version" if latest_patch.minor <= patch.minor
-        successors( latest_patch, ancestors )
+        successors(latest_patch, ancestors)
       else
         if entry.obsolete?
           succ = entry.successor
-          successors( succ, ancestors )
+          successors(succ, ancestors)
         elsif entry.bad?
           raise BadSuccessor, "Terminal successor #{patch} is bad/withdrawn"
         else
@@ -151,7 +150,7 @@ module Solaris
     # Return the Solaris::PatchdiagEntry of the latest non-obsolete successor
     # of this patch. This is a convenience method for #successors.last.
     def successor(patch)
-      latest( successors( patch ).last )
+      latest(successors(patch).last)
     end
 
     # Returns a string representation of the patchdiag.xref. All comments
@@ -164,4 +163,3 @@ module Solaris
   end # Patchdiag
 
 end # Solaris
-
