@@ -182,7 +182,7 @@ module Solaris
       [
         Date::ABBR_MONTHNAMES[@date.mon], # month eg Jan
         @date.mday.to_s.rjust(2, '0'), # day of month
-        @date.year % 100 # 2 digit year
+        (@date.year % 100).to_s.rjust(2, '0') # 2 digit year
       ].join('/')
     end
 

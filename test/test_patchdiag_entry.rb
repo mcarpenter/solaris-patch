@@ -60,6 +60,12 @@ class TestPatchdiagEntry < Test::Unit::TestCase #:nodoc:
     assert_equal(line, pde.to_s)
   end
 
+  def test_date_padding
+    line = '103346|30|Oct/03/02| | | |  |Unbundled|||Hardware/PROM: Sun Enterprise 3x00/4x00/5x00/6x00 flashprom update'
+    pde = Solaris::PatchdiagEntry.new(line)
+    assert_equal(line, pde.to_s)
+  end
+
   def test_compare_equal
     line = '100393|01|Sep/02/94| | |O|  |Unbundled|||OBSOLETED by 100394'
     assert_equal(Solaris::PatchdiagEntry.new(line),
