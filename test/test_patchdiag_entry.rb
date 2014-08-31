@@ -66,6 +66,14 @@ class TestPatchdiagEntry < Test::Unit::TestCase #:nodoc:
     assert_equal(line, pde.to_s)
   end
 
+  def test_y2k_bad
+    line = '104018|10|Jul/02/04| |S|O|YB|Unbundled|sparc;|SUNWsnmct:2.3;SUNWccrcv:1.2;SUNWsnmct:2.3,PATCH=10;SUNWccsnd:1.2;SUNWccsnd:1.2,PATCH=10;SUNWccrcv:1.2,PATCH=10;SUNWcccfg:1.2;SUNWsnmpd:2.3;SUNWcccfg:1.2,PATCH=10;SUNWsnmpd:2.3,PATCH=10;SUNWsnmag:2.3,PATCH=10;SUNWsnmag:2.3;|WITHDRAWN PATCH Obsoleted by: 104018-11 Solstice Site/SunNet/Domai'
+    pde = Solaris::PatchdiagEntry.new(line)
+    assert(pde.bad?)
+    assert(pde.y2k?)
+    assert_equal(line, pde.to_s)
+  end
+
   def test_compare_equal
     line = '100393|01|Sep/02/94| | |O|  |Unbundled|||OBSOLETED by 100394'
     assert_equal(Solaris::PatchdiagEntry.new(line),

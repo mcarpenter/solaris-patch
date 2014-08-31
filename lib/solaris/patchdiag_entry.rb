@@ -157,7 +157,7 @@ module Solaris
         @recommended,
         @security,
         @obsolete,
-        @bad + @y2k,
+        @y2k + @bad,
         @os,
         join_semis(@archs),
         join_semis(@pkgs),
